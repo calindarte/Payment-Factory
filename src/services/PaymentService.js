@@ -1,8 +1,6 @@
-// services/PaymentService.js
-const CreditCardFactory = require('../factories/CreditCardFactory');
-const PayPalFactory = require('../factories/PayPalFactory');
-const BankTransferFactory = require('../factories/BankTransferFactory');
-const CryptoFactory = require('../factories/CryptoFactory');
+const CreditCardFactory = require("../factories/CreditCardFactory");
+const DebitCardFactory = require("../factories/DebitCardFactory");
+const PayPalFactory = require("../factories/PayPalFactory");
 
 class PaymentService {
     constructor() {
@@ -11,26 +9,29 @@ class PaymentService {
 
     processPayment(type, amount) {
         this.configureFactory(type);
+        
+        if (!this.paymentFactory) {
+            throw new Error(`El método de pago "${type}" no es válido.`);
+        }
+
+        // Crear el pago con la fábrica
         const payment = this.paymentFactory.createPayment(amount);
-        return payment.process();
+        const processedPayment = payment.process();  // obtenemos los valores calculados
+        
+        return processedPayment; // Retorna el objeto con los cálculos correctos
     }
 
     configureFactory(type) {
-        switch (type.toLowerCase()) {
-            case 'credit_card':
-                this.paymentFactory = new CreditCardFactory();
-                break;
-            case 'paypal':
-                this.paymentFactory = new PayPalFactory();
-                break;
-            case 'bank_transfer':
-                this.paymentFactory = new BankTransferFactory();
-                break;
-            case 'crypto':
-                this.paymentFactory = new CryptoFactory();
-                break;
-            default:
-                throw new Error('Método de pago no soportado');
+        const typeLower = type.toLowerCase();
+
+        if (typeLower === "credit_card") {
+            this.paymentFactory = new CreditCardFactory();
+        } else if (typeLower === "debit_card") {
+            this.paymentFactory = new DebitCardFactory();
+        } else if (typeLower === "paypal") {
+            this.paymentFactory = new PayPalFactory();
+        } else {
+            this.paymentFactory = null;
         }
     }
 }
