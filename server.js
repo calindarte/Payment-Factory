@@ -1,10 +1,11 @@
 // server.js
 const express = require('express');
+const cors = require('cors');
 const paymentController = require('./src/controllers/paymentController');
 
 const app = express();
 const PORT = 3000;
-
+app.use(cors());
 app.use(express.json());
 
 
