@@ -44,7 +44,7 @@ const PaymentForm = () => {
   
 
   return (
-    <div className="max-w-md mx-auto mt-10 bg-white shadow-md rounded-lg p-6 border">
+    <div className="max-w-md mx-auto mt-10 bg-white shadow-md rounded-lg p-6 border dark:border-zinc-800 dark:bg-zinc-800 dark:text-white">
       <h2 className="text-xl font-bold mb-4">💳 Realizar Pago</h2>
 
       <form onSubmit={handleSubmit} className="space-y-4">
@@ -53,7 +53,7 @@ const PaymentForm = () => {
           <select
             value={type}
             onChange={(e) => setType(e.target.value)}
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            className="w-full border border-gray-300 rounded px-3 py-2 dark:text-zinc-900"
           >
             <option value="credit_card">Tarjeta de Crédito</option>
             <option value="debit_card">Tarjeta de Débito</option>
@@ -65,9 +65,10 @@ const PaymentForm = () => {
           <label className="block font-medium mb-1">Monto:</label>
           <input
             type="number"
+            placeholder="Ingrese Monto"
             value={amount}
             onChange={(e) => setAmount(e.target.value)}
-            className="w-full border border-gray-300 rounded px-3 py-2"
+            className="w-full border border-gray-300 rounded px-3 py-2 dark:text-zinc-900"
             required
           />
         </div>

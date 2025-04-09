@@ -55,7 +55,9 @@ const PaymentManager = () => {
   };
 
   return (
-    <div className="max-w-xl mx-auto mt-10 p-6 border rounded shadow bg-white">
+    <div className="py-40 dark:bg-zinc-600 ">
+
+    <div className="max-w-xl mx-auto mt-10 p-6 border dark:border-zinc-800 rounded shadow bg-white dark:bg-zinc-800 dark:text-white ">
       <h2 className="text-xl font-bold mb-4">🔍 Buscar, Editar o Eliminar Pago</h2>
 
       <div className="mb-4">
@@ -64,7 +66,7 @@ const PaymentManager = () => {
           value={id}
           onChange={(e) => setId(e.target.value)}
           placeholder="ID del pago"
-          className="w-full border px-3 py-2 rounded mb-2"
+          className="w-full border  px-3 py-2 rounded mb-2 dark:text-black"
         />
         <button
           onClick={handleSearch}
@@ -89,7 +91,7 @@ const PaymentManager = () => {
             <select
               value={editData.type}
               onChange={(e) => setEditData({ ...editData, type: e.target.value })}
-              className="w-full border rounded px-3 py-2 mb-2"
+              className="w-full border rounded px-3 py-2 mb-2 dark:text-black"
             >
               <option value="credit_card">Tarjeta de Crédito</option>
               <option value="debit_card">Tarjeta de Débito</option>
@@ -98,8 +100,9 @@ const PaymentManager = () => {
             <input
               type="number"
               value={editData.amount}
+              placeholder="Ingrese Nuevo Monto"
               onChange={(e) => setEditData({ ...editData, amount: e.target.value })}
-              className="w-full border rounded px-3 py-2 mb-2"
+              className="w-full border rounded px-3 py-2 mb-2 dark:text-black"
             />
             <button
               onClick={handleUpdate}
@@ -117,6 +120,7 @@ const PaymentManager = () => {
           </div>
         </div>
       )}
+    </div>
     </div>
   );
 };

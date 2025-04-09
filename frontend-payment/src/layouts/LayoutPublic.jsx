@@ -3,7 +3,7 @@ import Navbar from "../components/NavBar"
 
 const LayoutPublic = () => {
   return (
-    <div>
+    <div >
         <Navbar/>
         <Outlet/>
       
