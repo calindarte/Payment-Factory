@@ -1,13 +1,31 @@
 // server.js
 const express = require('express');
 const cors = require('cors');
-const paymentController = require('./src/controllers/paymentController');
-const DarkThemeFactory = require('./src/theme/factories/DarkThemeFactory');
-const LightThemeFactory = require('./src/theme/factories/LightThemeFactory');
-
 const app = express();
 const PORT = 3000;
 app.use(cors());
+
+//Controllers
+const paymentController = require('./src/controllers/paymentController');
+
+
+// Theme factories 
+const DarkThemeFactory = require('./src/theme/factories/DarkThemeFactory');
+const LightThemeFactory = require('./src/theme/factories/LightThemeFactory');
+
+
+// Notification Builders & Director
+const EmailNotificationBuilder = require('./src/builders/EmailNotificationBuilder');
+const SMSNotificationBuilder = require('./src/builders/SMSNotificationBuilder');
+const PushNotificationBuilder = require('./src/builders/PushNotificationBuilder');
+const WhatsAppNotificationBuilder = require('./src/builders/WhatsAppNotificationBuilder');
+const NotificationDirector = require('./src/directors/NotificationDirector');
+
+// PDF Report Builder & Director
+const PDFReportBuilder = require('./src/builders/PDFReportBuilder');
+const ReportDirector = require('./src/directors/ReportDirector');
+
+
 app.use(express.json());
 
 app.get('/theme/:mode', (req, res) => {
@@ -30,12 +48,50 @@ app.get('/theme/:mode', (req, res) => {
 });
 
 
-
 // Definir las rutas correctamente
 app.post('/payment/process', paymentController.createPayment);
 app.get('/payment/status/:id', paymentController.processPayment);
 app.put('/payment/update/:id', paymentController.updatePayment);
 app.delete('/payment/cancel/:id', paymentController.deletePayment);
+
+/* NOTIFICATION - Builder Pattern */
+app.post('/notification', (req, res) => {
+    const { type, ...data } = req.body;
+
+    let builder;
+    switch (type) {
+        case 'EMAIL':
+            builder = new EmailNotificationBuilder();
+            break;
+        case 'SMS':
+            builder = new SMSNotificationBuilder();
+            break;
+        case 'PUSH':
+            builder = new PushNotificationBuilder();
+            break;
+        case 'WHATSAPP':
+            builder = new WhatsAppNotificationBuilder();
+            break;
+        default:
+            return res.status(400).json({ error: 'Tipo de notificación no válido' });
+    }
+
+    const director = new NotificationDirector(builder);
+    const notification = director.construct({ type, ...data });
+    return res.json(notification);
+});
+
+/* PDF REPORT - Builder Pattern */
+app.post('/report', (req, res) => {
+    const config = req.body;
+
+    const builder = new PDFReportBuilder();
+    const director = new ReportDirector(builder);
+
+    const report = director.construct(config);
+    return res.json(report);
+});
+
 
 app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
