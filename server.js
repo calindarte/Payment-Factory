@@ -19,7 +19,7 @@ const EmailNotificationBuilder = require('./src/builders/EmailNotificationBuilde
 const SMSNotificationBuilder = require('./src/builders/SMSNotificationBuilder');
 const PushNotificationBuilder = require('./src/builders/PushNotificationBuilder');
 const WhatsAppNotificationBuilder = require('./src/builders/WhatsAppNotificationBuilder');
-const NotificationDirector = require('./src/NotificationDirector');
+const NotificationDirector = require('./src/directors/NotificationDirector');
 
 // PDF Report Builder & Director
 const PDFReportBuilder = require('./src/builders/PDFReportBuilder');
@@ -54,6 +54,9 @@ app.get('/payment/status/:id', paymentController.processPayment);
 app.put('/payment/update/:id', paymentController.updatePayment);
 app.delete('/payment/cancel/:id', paymentController.deletePayment);
 
+//almacenar las notificaciones
+const notifications = []; // ← simulando almacenamiento
+
 /* NOTIFICATION - Builder Pattern */
 app.post('/notification', (req, res) => {
     const { type, ...data } = req.body;
@@ -78,8 +81,19 @@ app.post('/notification', (req, res) => {
 
     const director = new NotificationDirector(builder);
     const notification = director.construct({ type, ...data });
+
+    notifications.push(notification); // ← guardamos la notificación
+
     return res.json(notification);
 });
+
+// traer las notificaciones
+app.get('/notification', (req, res) => {
+    res.json(notifications);
+});
+
+//almacenar los reportes
+const reports = [];
 
 /* PDF REPORT - Builder Pattern */
 app.post('/report', (req, res) => {
@@ -89,7 +103,14 @@ app.post('/report', (req, res) => {
     const director = new ReportDirector(builder);
 
     const report = director.construct(config);
+    reports.push(report); // ← guardamos el reporte
+
     return res.json(report);
+});
+
+//traer los reportes
+app.get('/report', (req, res) => {
+    res.json(reports);
 });
 
 
