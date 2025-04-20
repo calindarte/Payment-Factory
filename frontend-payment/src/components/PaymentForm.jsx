@@ -25,17 +25,91 @@ const PaymentForm = () => {
       console.log("✅ Respuesta del backend:", response.data);
   
       // Asigna correctamente el resultado
-      setResult(response.data.payment);
       console.log(response.data.message)
       setError("");
-      Swal.fire({
-        title: '✅ ¡Pago exitoso!',
-        html: `
-          <p>${response.data.message}</p>
-        `,
-        icon: 'success',
-        confirmButtonText: 'Cerrar'
+       // Mostrar modal de selección de notificación
+    const { value: notificationType } = await Swal.fire({
+      title: "¿Cómo deseas recibir la notificación?",
+      input: "select",
+      inputOptions: {
+        EMAIL: "Correo electrónico",
+        SMS: "Mensaje de texto (SMS)",
+        PUSH: "Notificación push",
+        WHATSAPP: "WhatsApp"
+      },
+      inputPlaceholder: "Selecciona un canal",
+      showCancelButton: true,
+      confirmButtonText: "Confirmar"
+    });
+    
+    if (notificationType) {
+      const notificationData = {
+        type: notificationType,
+    
+        ...(notificationType === "EMAIL" && {
+          to: "usuario@correo.com",
+          subject: "Pago exitoso",
+          body: `Gracias por tu pago de $${amount}.`,
+          cc: ["copiacorreo@correo.com"],
+          bcc: ["oculto@correo.com"],
+          attachments: [
+            {
+              filename: "recibo.pdf",
+              url: "https://example.com/recibo.pdf"
+            }
+          ],
+          priority: "alta"
+        }),
+    
+        ...(notificationType === "SMS" && {
+          phoneNumber: "+573001234567",
+          message: `Tu pago fue exitoso por $${amount}.`,
+          senderId: "PagosApp",
+          deliveryReportRequired: true,
+          scheduleTime: null // o una fecha en formato ISO: "2025-04-20T14:30:00Z"
+        }),
+    
+        ...(notificationType === "PUSH" && {
+          deviceToken: "abc123def456ghi789",
+          title: "Pago confirmado",
+          message: `Se ha procesado correctamente tu pago de $${amount}.`,
+          imageUrl: "https://example.com/pago.png",
+          clickAction: "https://tuapp.com/confirmacion-pago",
+          priority: "high"
+        }),
+    
+        ...(notificationType === "WHATSAPP" && {
+          phoneNumber: "+573001234567",
+          message: `Tu pago fue exitoso por $${amount}.`,
+          mediaUrl: "https://example.com/recibo.jpg",
+          caption: "Recibo de pago",
+          interactiveButtons: [
+            { type: "reply", title: "Ver Detalles" },
+            { type: "reply", title: "Contactar Soporte" }
+          ],
+          language: "es"
+        })
+      };
+       // Enviar al backend
+       await fetch("http://localhost:3000/notification", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(notificationData)
       });
+
+      Swal.fire("✅ Notificación enviada", "", "success");
+    }
+    setResult(response.data.payment);
+
+
+      // Swal.fire({
+      //   title: '✅ ¡Pago exitoso!',
+      //   html: `
+      //     <p>${response.data.message}</p>
+      //   `,
+      //   icon: 'success',
+      //   confirmButtonText: 'Cerrar'
+      // });
     } catch (err) {
       console.error("❌ Error al procesar el pago:", err);
       setError(err.response?.data?.error || "Error al procesar el pago");

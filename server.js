@@ -19,11 +19,11 @@ const EmailNotificationBuilder = require('./src/builders/EmailNotificationBuilde
 const SMSNotificationBuilder = require('./src/builders/SMSNotificationBuilder');
 const PushNotificationBuilder = require('./src/builders/PushNotificationBuilder');
 const WhatsAppNotificationBuilder = require('./src/builders/WhatsAppNotificationBuilder');
-const NotificationDirector = require('./src/directors/NotificationDirector');
+const NotificationDirector = require('./src/NotificationDirector');
 
 // PDF Report Builder & Director
 const PDFReportBuilder = require('./src/builders/PDFReportBuilder');
-const ReportDirector = require('./src/directors/ReportDirector');
+const ReportDirector = require('./src/ReportDirector');
 
 
 app.use(express.json());
