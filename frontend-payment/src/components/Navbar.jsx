@@ -25,7 +25,7 @@ const Navbar = () => {
       try {
         const res = await fetch("http://localhost:3000/notification"); // ajusta tu ruta
         const data = await res.json();
-        setNotifications(data.notifications || []);
+        setNotifications(data || []);
       } catch (error) {
         console.error("Error al obtener notificaciones:", error);
       }
@@ -36,6 +36,7 @@ const Navbar = () => {
     }
   }, [showNotifications]);
 
+  console.log(notifications)
   return (
     <nav className="bg-blue-500 dark:bg-zinc-800 text-white py-3 flex justify-between items-center px-20 relative">
       <h1 className="font-bold text-lg">💳 Gestor de Pagos</h1>
@@ -85,9 +86,9 @@ const Navbar = () => {
             className="p-3 border-b hover:bg-gray-100 dark:hover:bg-zinc-600 text-sm"
           >
             <div className="font-semibold">{notif.type}</div>
-            <div>{notif.message || notif.body || notif.title}</div>
+            <div>{notif.message || notif.body ||  notif.title}</div>
             <div className="text-xs text-gray-500 mt-1">
-              {new Date(notif.date || notif.createdAt).toLocaleString()}
+              {new Date().toLocaleString()}
             </div>
           </div>
         ))

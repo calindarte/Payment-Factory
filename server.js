@@ -1,6 +1,8 @@
 // server.js
 const express = require('express');
 const cors = require('cors');
+const path = require('path');
+
 const app = express();
 const PORT = 3000;
 app.use(cors());
@@ -19,10 +21,10 @@ const EmailNotificationBuilder = require('./src/builders/EmailNotificationBuilde
 const SMSNotificationBuilder = require('./src/builders/SMSNotificationBuilder');
 const PushNotificationBuilder = require('./src/builders/PushNotificationBuilder');
 const WhatsAppNotificationBuilder = require('./src/builders/WhatsAppNotificationBuilder');
-const NotificationDirector = require('./src/directors/NotificationDirector');
+const NotificationDirector = require('./src/NotificationDirector');
 
 // PDF Report Builder & Director
-const PDFReportBuilder = require('./src/builders/PDFReportBuilder');
+const PDFReportBuilder = require('./PDFReportBuilder');
 const ReportDirector = require('./src/ReportDirector');
 
 
@@ -92,21 +94,33 @@ app.get('/notification', (req, res) => {
     res.json(notifications);
 });
 
+
+// Middleware para servir archivos estáticos desde la carpeta 'public'
+app.use('/reports', express.static(path.join(__dirname, 'public')));
+
+
 //almacenar los reportes
 const reports = [];
 
-/* PDF REPORT - Builder Pattern */
+// Endpoint para crear el reporte PDF
+// Endpoint para crear el reporte PDF
 app.post('/report', (req, res) => {
     const config = req.body;
+  
+    try {
+        const builder = new PDFReportBuilder();
+        const director = new ReportDirector(builder);
+        const report = director.construct(config);
+      
+        reports.push(report); // Guardamos el reporte
 
-    const builder = new PDFReportBuilder();
-    const director = new ReportDirector(builder);
-
-    const report = director.construct(config);
-    reports.push(report); // ← guardamos el reporte
-
-    return res.json(report);
+        res.json(report); // Enviar la URL del reporte generado
+    } catch (error) {
+        console.error('Error al generar el reporte:', error);
+        res.status(500).json({ message: 'Error al generar el reporte PDF.' });
+    }
 });
+
 
 //traer los reportes
 app.get('/report', (req, res) => {
