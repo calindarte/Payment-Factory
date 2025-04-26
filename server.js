@@ -10,6 +10,9 @@ app.use(cors());
 //Controllers
 const paymentController = require('./src/controllers/paymentController');
 
+//Prototype
+const PDFReport = require ('./src/prototype/PDFReportProto')
+
 
 // Theme factories 
 const DarkThemeFactory = require('./src/theme/factories/DarkThemeFactory');
@@ -103,14 +106,16 @@ app.use('/reports', express.static(path.join(__dirname, 'public')));
 const reports = [];
 
 // Endpoint para crear el reporte PDF
-// Endpoint para crear el reporte PDF
 app.post('/report', (req, res) => {
     const config = req.body;
   
     try {
         const builder = new PDFReportBuilder();
         const director = new ReportDirector(builder);
+
+
         const report = director.construct(config);
+        
       
         reports.push(report); // Guardamos el reporte
 
@@ -125,6 +130,23 @@ app.post('/report', (req, res) => {
 //traer los reportes
 app.get('/report', (req, res) => {
     res.json(reports);
+});
+
+
+//Prototype
+app.post('/report/clone/:index', (req, res) => {
+    const { index } = req.params;
+
+    if (index < 0 || index >= reports.length) {
+        return res.status(404).json({ message: 'Reporte no encontrado' });
+    }
+
+    const originalReport = reports[index];
+    const clonedReport = new PDFReport(originalReport); // ← aquí aplicas Prototype creando un clon
+
+    reports.push(clonedReport); // Guardamos el clon
+
+    res.json(clonedReport); // Retornamos el clon
 });
 
 
