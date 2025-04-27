@@ -48,53 +48,127 @@ const PaymentForm = () => {
     });
 
     if (notificationType) {
-      const notificationData = {
-        type: notificationType,
-    
-        ...(notificationType === "EMAIL" && {
-          to: "usuario@correo.com",
-          subject: "Pago exitoso",
-          body: `Gracias por tu pago de $${amount}.`,
-          cc: ["copiacorreo@correo.com"],
-          bcc: ["oculto@correo.com"],
-          attachments: [
-            {
-              filename: "recibo.pdf",
-              url: "https://example.com/recibo.pdf"
-            }
-          ],
-          priority: "alta"
-        }),
-    
-        ...(notificationType === "SMS" && {
-          phoneNumber: "+573001234567",
+
+
+      let notificationData = {};
+
+      if (notificationType === "EMAIL") {
+          // Solicitar el correo electrónico al usuario
+    const { value: emailAddress } = await Swal.fire({
+      title: 'Ingresa tu correo electrónico',
+      input: 'email',
+      inputPlaceholder: 'Correo electrónico',
+      confirmButtonText: 'Enviar',
+      showCancelButton: true,
+      cancelButtonText: 'Cancelar',
+      customClass: {
+        confirmButton: 'bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded',
+        cancelButton: 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded ml-2'
+      }
+    });
+
+    if (emailAddress) {
+      notificationData = {
+        type: "EMAIL",
+        to: emailAddress,
+        subject: "Pago exitoso",
+        body: `¡Hola! Tu pago de $${amount} con ${type === "credit_card" ? "tarjeta de crédito" : type === "debit_card" ? "tarjeta débito" : "PayPal"} fue procesado exitosamente.`,
+        cc: ["copiacorreo@correo.com"],
+        bcc: ["oculto@correo.com"],
+        attachments: [
+          {
+            filename: "recibo.pdf",
+            url: "https://example.com/recibo.pdf"
+          }
+        ],
+        priority: "alta"
+      };
+      // Crear el mensaje para el correo electrónico
+      const subject = "Pago exitoso";
+      const body = `¡Hola! Gracias por tu pago de $${amount}. Tu pago con ${type === "credit_card" ? "tarjeta de crédito" : type === "debit_card" ? "tarjeta débito" : "PayPal"} fue procesado exitosamente. ¡Gracias!`;
+
+      // Generar el enlace para abrir el cliente de correo con el mensaje predefinido
+      const emailLink = `mailto:${emailAddress}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+
+      // Redirigir al usuario a su cliente de correo
+      window.open(emailLink, '_blank'); // Esto abrirá el cliente de correo predeterminado en una nueva pestaña
+
+      // Mostrar confirmación
+      Swal.fire("Redirigiendo", "Te estamos redirigiendo a tu correo electrónico...", "success");
+    } else {
+      Swal.fire("❌ Error", "No se ingresó un correo electrónico válido", "error");
+      return; // Si no se ingresa el correo, termina la ejecución
+    }
+        
+      } else if (notificationType === "SMS") {
+        notificationData = {
+          type: "SMS",
+          phoneNumber: "3013103390",
           message: `Tu pago fue exitoso por $${amount}.`,
           senderId: "PagosApp",
           deliveryReportRequired: true,
           scheduleTime: null // o una fecha en formato ISO: "2025-04-20T14:30:00Z"
-        }),
-    
-        ...(notificationType === "PUSH" && {
+        };
+      } else if (notificationType === "WHATSAPP") {
+        // Solicitar el número de WhatsApp si se selecciona la opción
+        const { value: whatsappNumber } = await Swal.fire({
+          title: 'Ingresa tu número de WhatsApp',
+          input: 'text',
+          inputPlaceholder: 'Número de WhatsApp',
+          confirmButtonText: 'Enviar',
+          showCancelButton: true,
+          cancelButtonText: 'Cancelar',
+          customClass: {
+            confirmButton: 'bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded',
+            cancelButton: 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded ml-2'
+          }
+        });
+      
+        // Verificar si el número de WhatsApp fue proporcionado
+        if (whatsappNumber) {
+          notificationData = {
+            type: "WHATSAPP",
+            phoneNumber: whatsappNumber, // Usar el número de WhatsApp ingresado
+            message: `Tu pago de ${type==="credit_card"? "tarjeta credito": type === "debit_card"? "tarjeta debito":"paypal" } por $${amount} fue exitoso. ¡Gracias!`,
+            mediaUrl: "https://example.com/recibo.jpg",
+            caption: "Recibo de pago",
+            interactiveButtons: [
+              { type: "reply", title: "Ver Detalles" },
+              { type: "reply", title: "Contactar Soporte" }
+            ],
+            language: "es"
+          };
+
+          const message = `Tu pago de ${type==="credit_card"? "tarjeta credito": type === "debit_card"? "tarjeta debito":"paypal" } por $${amount} fue exitoso. ¡Gracias!`
+          // Generar el enlace para abrir WhatsApp con el mensaje
+          const whatsappLink = `https://wa.me/57${whatsappNumber}?text=${encodeURIComponent(message)}`;
+          
+          // Redirigir al usuario a WhatsApp
+          window.open(whatsappLink, '_blank'); // Esto abrirá WhatsApp en una nueva pestaña
+      
+          // Si quieres mostrar una notificación en pantalla que confirme que se redirige a WhatsApp:
+          Swal.fire("Redirigiendo", "Te estamos redirigiendo a WhatsApp...", "success");
+        } else {
+          // Si no se ingresa un número, cancelar la operación
+          Swal.fire("❌ Error", "No se ingresó un número de WhatsApp válido", "error");
+          return; // Salir de la función si no se ingresa el número
+        }
+      } else if (notificationType === "PUSH") {
+        notificationData = {
+          type: "PUSH",
           deviceToken: "abc123def456ghi789",
           title: "Pago confirmado",
           message: `Se ha procesado correctamente tu pago de $${amount}.`,
           imageUrl: "https://example.com/pago.png",
           clickAction: "https://tuapp.com/confirmacion-pago",
           priority: "high"
-        }),
-    
-        ...(notificationType === "WHATSAPP" && {
-          phoneNumber: "+573001234567",
-          message: `Tu pago fue exitoso por $${amount}.`,
-          mediaUrl: "https://example.com/recibo.jpg",
-          caption: "Recibo de pago",
-          interactiveButtons: [
-            { type: "reply", title: "Ver Detalles" },
-            { type: "reply", title: "Contactar Soporte" }
-          ],
-          language: "es"
-        })
-      };
+        };
+      }
+      
+      
+      console.log("📩 Enviando notificación:", notificationData);
+
+
        // Enviar al backend
        await fetch("http://localhost:3000/notification", {
         method: "POST",
@@ -104,129 +178,10 @@ const PaymentForm = () => {
 
       Swal.fire("✅ Notificación enviada", "", "success");
     }
-    // 💡 Solicitar configuración del PDF al usuario
-    const { value: config } = await Swal.fire({
-      title: "🧾 Configuración del Reporte PDF",
-      html: `
-        <div style="text-align: left;">
-          <label for="title"><strong>Título del reporte:</strong></label>
-          <input id="title" class="swal2-input" placeholder="Ej: Comprobante de Pago">
-    
-          <label for="logo"><strong>Logo (opcional):</strong></label>
-          <input type="file" id="logo" accept="image/*" class="swal2-file">
-    
-          <div style="margin-top: 10px;">
-            <label><input type="checkbox" id="includeLogo" checked> Incluir logo</label><br/>
-            <label><input type="checkbox" id="includeDetails" checked> Incluir detalles del pago</label><br/>
-            <label><input type="checkbox" id="includeUser" checked> Incluir datos del usuario</label><br/>
-            <label><input type="checkbox" id="includeTimestamp" checked> Incluir fecha y hora</label>
-          </div>
-    
-          <label for="footerMessage" style="margin-top: 10px;"><strong>Mensaje en el pie:</strong></label>
-          <input id="footerMessage" class="swal2-input" placeholder="Gracias por tu pago">
-    
-          <label for="theme"><strong>Tema:</strong></label>
-          <select id="theme" class="swal2-input">
-            <option value="LIGHT">Claro</option>
-            <option value="DARK">Oscuro</option>
-          </select>
-    
-          <label for="format"><strong>Formato:</strong></label>
-          <select id="format" class="swal2-input">
-            <option value="A4">A4</option>
-            <option value="LETTER">Carta</option>
-          </select>
-        </div>
-      `,
-      showCancelButton: true,
-      customClass: {
-        confirmButton: 'bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded',
-        cancelButton: 'bg-red-600 hover:bg-red-700 text-white font-bold py-2 px-4 rounded ml-2'
-      },
-      buttonsStyling: false,
-      confirmButtonText: "Generar Reporte",
-      cancelButtonText: "Cancelar",
-      focusConfirm: false,
-      preConfirm: () => {
-        const logoInput = document.getElementById("logo");
-        const file = logoInput?.files?.[0];
-    
-        return new Promise((resolve) => {
-          if (file) {
-            const reader = new FileReader();
-            reader.onload = () => {
-              resolve({
-                title: document.getElementById("title").value,
-                includeLogo: document.getElementById("includeLogo").checked,
-                includePaymentDetails: document.getElementById("includeDetails").checked,
-                includeUserInfo: document.getElementById("includeUser").checked,
-                includeTimestamp: document.getElementById("includeTimestamp").checked,
-                footerMessage: document.getElementById("footerMessage").value,
-                theme: document.getElementById("theme").value,
-                format: document.getElementById("format").value,
-                logoBase64: reader.result, // Se envía como base64
-                type: type,  // Tipo de pago
-                amount: amount // Monto del pago
-              });
-            };
-            reader.readAsDataURL(file);
-          } else {
-            resolve({
-              title: document.getElementById("title").value,
-              includeLogo: document.getElementById("includeLogo").checked,
-              includePaymentDetails: document.getElementById("includeDetails").checked,
-              includeUserInfo: document.getElementById("includeUser").checked,
-              includeTimestamp: document.getElementById("includeTimestamp").checked,
-              footerMessage: document.getElementById("footerMessage").value,
-              theme: document.getElementById("theme").value,
-              format: document.getElementById("format").value,
-              logoBase64: null,
-              type: type,  // Tipo de pago
-              amount: amount // Monto del pago
-            });
-          }
-        });
-      }
-    });
-    
-
-if (config) {
-  // Enviar configuración al backend para generar el reporte PDF
-  const response = await fetch("http://localhost:3000/report", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(config)
-  });
-
-  const report = await response.json();
-
-  // Abrir el PDF en una nueva pestaña
-  if (report.url) {
-    window.open(report.url, "_blank");
-  } else {
-    console.error("No se recibió la URL del PDF.");
-  }  
-
-  // // Crear el enlace para la descarga del reporte PDF
-  // Swal.fire({
-  //   title: "📄 Reporte Generado",
-  //   html: `
-  //     <p>Tu reporte ha sido generado con éxito.</p>
-  //     <a href="${report.url}" target="_blank" rel="noopener" style="color:#3085d6;text-decoration:underline;">Ver Reporte</a><br/>
-  //     <a href="${report.url}" download="reporte.pdf" style="color:#28a745;text-decoration:underline;">Descargar Reporte</a>
-  //   `,
-  //   icon: "success",
-  //   confirmButtonText: "Cerrar"
-  // });
   
-  // Swal.fire({
-  //   title: "📄 Reporte Generado",
-  //   text: "Tu reporte ha sido generado con éxito.",
-  //   icon: "success"
-  // });
+
   setResult({ status: "success", amount });
-}
-    } catch (err) {
+} catch (err) {
       console.error("❌ Error al procesar el pago:", err);
       setError(err.response?.data?.error || "Error al procesar el pago");
     }
@@ -262,12 +217,11 @@ if (config) {
             required
           />
         </div>
-
         <button
           type="submit"
           className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition"
         >
-          Pagar
+          Realizar Pago
         </button>
       </form>
 

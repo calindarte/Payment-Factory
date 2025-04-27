@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
-import Swal from "sweetalert2";
+import { Link } from "react-router-dom"
 
 const inicialDarkMode = localStorage.getItem("theme") === "dark";
 
@@ -8,6 +7,7 @@ const Navbar = () => {
   const [darkMode, setDarkMode] = useState(inicialDarkMode);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState([]);
+  
 
   useEffect(() => {
     if (darkMode) {
